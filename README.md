@@ -5,7 +5,7 @@
 모든 내용 안드로이드 및 아이폰(에뮬레이터 및 실제 기기)에서 동시에 적용/테스트 가능합니다.
 
 ## 일정
- - 11/14 : Redis DB 연결 
+ - 11/14 : Redis DB 연결(예정) 
  - 10/16~17 : Django 및 Express.js(Node.js)를 활용한 카카오 페이 직접 연동
  - 9/10 : 보조 서버를 활용
  - 8/27 : express Vue.js 페이지 WebView 활용
@@ -26,7 +26,7 @@
 ## 목록
  - [x] 서버 및 데이터베이스 연결 : Node.js(Express.js) - [서버 코드 바로가기](https://github.com/doyle-flutter/basicexpress)
  - [x] mysql CRUD 구현
- - [x] Redis 직접 연결 - [Flutter Code]() / [설치 및 실행]()
+ - [ ] Redis 직접 연결(예정) - [Flutter Code]() / [설치 및 실행]()
  - [x] Local DB : Sqflite CRUD
  - [x] Local DB : SharedPreferences & 카카오 로그인 토큰 사용
  - [x] socket.io를 통한 채팅 구현

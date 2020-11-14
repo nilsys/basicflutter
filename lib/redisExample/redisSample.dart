@@ -3,9 +3,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:redis/redis.dart';
 // https://pub.dev/packages/redis
-// IOS 테스트 완료
-// Android 테스트 예정
-
+// 직접 연결
+// - 서버를 통해 실행(Redis와 직접 연결은 정책상 통과하지 못 할 수 있음. Dart 서버사이드에서 사용하기 위함. ex/ dart-angel )
+// - IOS 테스트는 가능
+// - Android 직접 연결 테스트 불가
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +39,7 @@ class _MyRedisState extends State<MyRedis> {
     Future.microtask(() async => await conn.connect('localhost',6379)
       .then((Command command) async{
 
-        // null ??
+        // null ?? "value"
         String data = await command.send_object(RedisQuery.getQuery(key: RedisQuery.KEY)) ?? "Redis2";
         print("DATA2 : $data");
 

@@ -1,0 +1,21 @@
+MAC OS 기준
+
+1. 설치
+   > brew install redis
+
+2. 실행
+   > $brew services start redis
+
+3. 중지
+   > brew services stop redis
+
+4. 재실행
+   > $brew services restart redis
+
+5. brew 를 통해 실행 중인 프로그램 목록
+   > brew services list
+
+6. redis 접근
+   > redis-server
+
+* Redis 기본 포트 6379

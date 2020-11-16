@@ -1,85 +1,109 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:redis/redis.dart';
-// https://pub.dev/packages/redis
-// 직접 연결
-// - 서버를 통해 실행(Redis와 직접 연결은 정책상 통과하지 못 할 수 있음. Dart 서버사이드에서 사용하기 위함. ex/ dart-angel )
-// - IOS 테스트는 가능
-// - Android 직접 연결 테스트 불가
+import 'package:http/http.dart' as http;
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
-  return runApp(MaterialApp(home: MyRedis(),));
+  return runApp(MaterialApp(home: MyTodoRedis(),));
 }
 
-class MyRedis extends StatefulWidget {
+class MyTodoRedis extends StatefulWidget {
   @override
-  _MyRedisState createState() => _MyRedisState();
+  _MyTodoRedisState createState() => _MyTodoRedisState();
 }
 
-class _MyRedisState extends State<MyRedis> {
-  RedisConnection conn = new RedisConnection();
+class _MyTodoRedisState extends State<MyTodoRedis> {
+
+  Map<String, dynamic> uiData;
+  final TextEditingController _tc = new TextEditingController(text: "");
+
+  Future<Map<String,dynamic>> _getData() async{
+    try{
+      final http.Response _res = await http.get("http://127.0.0.1:3000/data/get?key=key");
+      return _parse(res: _res);
+    }
+    catch(e){
+      return null;
+    }
+
+  }
+  static Future<Map<String, String>> _toMap(Map<String, dynamic> data) async
+   => {data.keys.toList()[0].toString() : data[data.keys.toList()[0]].toString()};
+
+  Future<Map<String, dynamic>> _parse({http.Response res}) async{
+    final Map<String, dynamic> _result = json.decode(res.body);
+    return compute(_toMap, _result);
+  }
+  Future<void> _saveData({String data}) async{
+    if(data.isEmpty) return;
+    final http.Response _res = await http.post("http://127.0.0.1:3000/data/set?key=key&value=$data");
+    final bool _check = json.decode(_res.body);
+    if(!_check) return;
+    _tc.text = "";
+    return await _uiResetData();
+  }
+
+  Future<void> _uiResetData() async{
+    this.uiData = await _getData();
+    if(uiData == null){
+      return Future.delayed(Duration(seconds: 8), () => _uiResetData());
+    }
+    setState(() {});
+    return;
+  }
+
+  Widget _uiDataView({@required Map<String, dynamic> uiData}) => uiData == null
+    ? Text("Load...")
+    : Text(this.uiData['key'].toString());
+
   @override
   void initState() {
-    Future.microtask(() async => await conn.connect('localhost',6379)
-        .then((Command command) async{
-          await command.send_object( ["SET","key","SET REDIS DATA!"] )
-            .then((var response) async{
-              print("response : $response");
-              print(response.runtimeType);
-              return;
-            });
-          String data = await command.send_object(["GET","key"])
-            .then((var response) => response.toString()) ?? "Redis";
-          print("DATA1 : $data");
-          return;
-        }));
-    Future.microtask(() async => await conn.connect('localhost',6379)
-      .then((Command command) async{
-
-        // null ?? "value"
-        String data = await command.send_object(RedisQuery.getQuery(key: RedisQuery.KEY)) ?? "Redis2";
-        print("DATA2 : $data");
-
-        // List Data : SET
-        await command.send_object(["SET",'key2','["2","key1","key2","first","second"]']);
-        var data2 = await command.send_object(RedisQuery.getQuery(key: 'key2'));
-        print("data2 : $data2");
-        print(json.decode(data2)[0]);
-
-        // List Data : SET Encode -> GET Decode
-        List lData = [1,2,3,4,5];
-        String lDataEn = json.encode(lData);
-        await command.send_object(["SET",'key3',lDataEn]);
-        var data3 = await command.send_object(RedisQuery.getQuery(key: 'key3'));
-        print("data3 : $data3");
-        List lDataDe = json.decode(data3);
-        print(lDataDe[0]);
-        return;
-      })
-    );
-
+    Future.microtask(() async => _uiResetData());
     super.initState();
   }
+
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text("Redis"),));
-}
-
-class RedisQuery{
-
-  static const String KEY = "key33";
-
-  static List<String> setQuery({@required String key, @required String value}){
-    assert(key != null);
-    assert(value != null);
-    return ["SET", key, value];
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Node.js & Redis"),),
+      body: Column(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  flex: 2,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10.0),
+                    child: TextField(
+                      controller: _tc,
+                      decoration: InputDecoration(
+                        fillColor: Colors.grey[300],
+                        filled: true,
+                        border: InputBorder.none,
+                        hintText: "입력해주세요"
+                      ),
+                    )
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: ElevatedButton(
+                    child: Text("Save"),
+                    onPressed: () async => await _saveData(data: _tc.text),
+                  ),
+                )
+              ],
+            )
+          ),
+          Expanded(child: _uiDataView(uiData: this.uiData))
+        ],
+      ),
+    );
   }
-
-  static List<String> getQuery({@required String key}){
-    assert(key != null);
-    return ["GET", key];
-  }
-
 }

@@ -69,39 +69,44 @@ class _MyTodoRedisState extends State<MyTodoRedis> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Node.js & Redis"),),
-      body: Column(
-        children: [
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  flex: 2,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: TextField(
-                      controller: _tc,
-                      decoration: InputDecoration(
-                        fillColor: Colors.grey[300],
-                        filled: true,
-                        border: InputBorder.none,
-                        hintText: "입력해주세요"
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height-kToolbarHeight-MediaQuery.of(context).padding.top,
+          child: Column(
+            children: [
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 10.0),
+                        child: TextField(
+                          controller: _tc,
+                          decoration: InputDecoration(
+                            fillColor: Colors.grey[300],
+                            filled: true,
+                            border: InputBorder.none,
+                            hintText: "입력해주세요"
+                          ),
+                        )
+                      ),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: ElevatedButton(
+                        child: Text("Save"),
+                        onPressed: () async => await _saveData(data: _tc.text),
                       ),
                     )
-                  ),
-                ),
-                Flexible(
-                  flex: 1,
-                  child: ElevatedButton(
-                    child: Text("Save"),
-                    onPressed: () async => await _saveData(data: _tc.text),
-                  ),
+                  ],
                 )
-              ],
-            )
+              ),
+              Expanded(child: _uiDataView(uiData: this.uiData))
+            ],
           ),
-          Expanded(child: _uiDataView(uiData: this.uiData))
-        ],
+        ),
       ),
     );
   }
